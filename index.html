@@ -1,0 +1,103 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Play images sanitizer</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:regular,medium,thin,italic,mediumitalic,bold" title="roboto">
+<link rel="stylesheet" type="text/css" href="css/studio.css">
+<script>
+$(document).ready(function(){
+  var upload_url = '{{upload_url}}';
+  
+  $(':file').change(function(){
+	var totalSize = 0
+	for(i=0; i< this.files.length; i++){
+		//console.log(this.files[i]);
+		totalSize += this.files[i].size;
+	}
+	console.log(totalSize);
+	if(totalSize > 10000000) {
+		alert('Please keep it under 10mb!');
+	}else {
+		$('.spinner').show();
+		var formData = new FormData($('form')[0]);
+		$.ajax({
+			url: upload_url,
+			type: 'POST',
+			xhr: function() {
+				var myXhr = $.ajaxSettings.xhr();
+				if(myXhr.upload){
+					myXhr.upload.addEventListener('progress',progressHandlingFunction, false);
+				}
+				return myXhr;
+			},
+			//Ajax events
+			//beforeSend: beforeSendHandler,
+			success: completeHandler,
+			error: errorHandler,
+			// Form data
+			data: formData,
+			//Options to tell jQuery not to process data or worry about content-type.
+			cache: false,
+			contentType: false,
+			processData: false
+		});
+	}
+ 
+});
+
+function completeHandler(data) {
+	$('.spinner').hide();
+	console.log(data);
+	console.log(JSON.parse(data).urls);
+    var payload = JSON.parse(data);
+	$('.preview').html('');
+	for(i in payload.urls) {
+		$('.preview').append('<img width="300" src="/view/'+payload.urls[i]+'"/>')
+	}
+	$('.download_link').html('<a class="form-button" href="/zip?images=' + payload.urls.join() +'">Download (Full size)</a>');
+	upload_url = payload.upload_url;
+}
+function errorHandler(data) {
+	console.log(data)
+}
+function progressHandlingFunction(e) {
+	/*if(e.lengthComputable){
+        $('progress').attr({value:e.loaded,max:e.total});
+    }*/
+}
+});
+
+
+</script>
+</head>
+<body>
+ <div id="main-container">
+      <div id="page-header">
+        <a href="http://android-ui-utils.googlecode.com/hg/asset-studio/dist/index.html">Android Asset Studio</a>
+        <h1>Play images sanitizer</h1>
+		<p id="page-intro">The Play images sanitizer removes the status bar and software keys bar from your app's snapshots, so that they look good when previewed on the Play app</p>
+      </div>
+      <div id="inputs">
+        <form enctype="multipart/form-data">
+			<label class="form-button">Upload image(s)
+			<input id="image_upload" name="files" type="file" multiple/>
+			</label>
+			<img class="spinner" src="img/spinner.gif" style="display: none"/>
+			<div class="download_link"></div>
+			
+		</form>
+      </div>
+      <div id="outputs">
+        <h3>Preview</h3>
+        <div class="preview"></div>
+        <div id="zip-button-stub"></div>
+      </div>
+      <div id="footer">
+		<p>Inspired by the <a href="http://code.google.com/p/android-ui-utils">android-ui-utils</a> Google Code project</p>
+		<p>See source at the <a href=""></a> Github project</p>
+      </div>
+    </div>
+</body> 
+</html>
