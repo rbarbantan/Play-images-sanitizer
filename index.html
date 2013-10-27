@@ -13,7 +13,6 @@ $(document).ready(function(){
   $(':file').change(function(){
 	var totalSize = 0
 	for(i=0; i< this.files.length; i++){
-		//console.log(this.files[i]);
 		totalSize += this.files[i].size;
 	}
 	console.log(totalSize);
@@ -25,15 +24,7 @@ $(document).ready(function(){
 		$.ajax({
 			url: upload_url,
 			type: 'POST',
-			xhr: function() {
-				var myXhr = $.ajaxSettings.xhr();
-				if(myXhr.upload){
-					myXhr.upload.addEventListener('progress',progressHandlingFunction, false);
-				}
-				return myXhr;
-			},
 			//Ajax events
-			//beforeSend: beforeSendHandler,
 			success: completeHandler,
 			error: errorHandler,
 			// Form data
@@ -49,8 +40,6 @@ $(document).ready(function(){
 
 function completeHandler(data) {
 	$('.spinner').hide();
-	console.log(data);
-	console.log(JSON.parse(data).urls);
     var payload = JSON.parse(data);
 	$('.preview').html('');
 	for(i in payload.urls) {
@@ -62,11 +51,7 @@ function completeHandler(data) {
 function errorHandler(data) {
 	console.log(data)
 }
-function progressHandlingFunction(e) {
-	/*if(e.lengthComputable){
-        $('progress').attr({value:e.loaded,max:e.total});
-    }*/
-}
+
 });
 
 
@@ -96,7 +81,7 @@ function progressHandlingFunction(e) {
       </div>
       <div id="footer">
 		<p>Inspired by the <a href="http://code.google.com/p/android-ui-utils">android-ui-utils</a> Google Code project</p>
-		<p>See source at the <a href=""></a> Github project</p>
+		<p>See sources at the <a href="https://github.com/rbarbantan/Play-images-sanitizer">Play images sanitizer</a> Github project</p>
       </div>
     </div>
 </body> 
