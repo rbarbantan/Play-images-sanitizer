@@ -16,9 +16,12 @@ input[type="file"] {
 }
 .download_link {
 	float:right;
-	margin-left: 8px;
 }
 .preview img {
 	margin: 8px;
-	border: 1px solid #ccc
+	border: 1px solid #ccc;
+}
+
+.form-field-buttonset label, .form-field-checkbutton+label {
+	border-right: 1px solid #ccc;
 }

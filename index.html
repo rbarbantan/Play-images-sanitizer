@@ -9,6 +9,7 @@
 <script>
 $(document).ready(function(){
   var upload_url = '{{upload_url}}';
+  var images_list;
   
   $(':file').change(function(){
 	var totalSize = 0
@@ -36,22 +37,36 @@ $(document).ready(function(){
 		});
 	}
  
-});
+  });
 
-function completeHandler(data) {
+  function completeHandler(data) {
 	$('.spinner').hide();
     var payload = JSON.parse(data);
-	$('.preview').html('');
-	for(i in payload.urls) {
-		$('.preview').append('<img width="300" src="/view/'+payload.urls[i]+'"/>')
-	}
-	$('.download_link').html('<a class="form-button" href="/zip?images=' + payload.urls.join() +'">Download (Full size)</a>');
+	images_list = payload.urls;
 	upload_url = payload.upload_url;
-}
-function errorHandler(data) {
+	updatePreviews();
+  }
+  
+  function errorHandler(data) {
 	console.log(data)
-}
+  }
 
+  function updatePreviews() {
+    $('.preview').html('');
+	var type = $('input[name="type"]:checked').val();
+	if(images_list) {
+		for(i in images_list) {
+			$('.preview').append('<img width="300" src="/view/'+images_list[i]+'?type='+type+'"/>')
+		}
+		$('.download_link').html('<a class="form-button" href="/zip?images=' + images_list.join() +'&type='+type+'">Download (Full size)</a>');
+	}
+  }
+
+  $('input[name="type"]').change(
+    function(){
+		updatePreviews();
+    }
+  );     
 });
 
 
@@ -62,7 +77,7 @@ function errorHandler(data) {
       <div id="page-header">
         <a href="http://android-ui-utils.googlecode.com/hg/asset-studio/dist/index.html">Android Asset Studio</a>
         <h1>Play images sanitizer</h1>
-		<p id="page-intro">The Play images sanitizer removes the status bar and software keys bar from your app's snapshots, so that they look good when previewed on the Play app</p>
+		<p id="page-intro">The Play images sanitizer cleans up or removes the status bar and software keys bar from your app's snapshots, so that they look good when previewed in the Play store</p>
       </div>
       <div id="inputs">
         <form enctype="multipart/form-data">
@@ -71,11 +86,19 @@ function errorHandler(data) {
 			</label>
 			<img class="spinner" src="img/spinner.gif" style="display: none"/>
 			<div class="download_link"></div>
-			
+			<br/><br/>
+			<div class="form-field-outer">
+				<label for="_frm-iconform-foreground-spaceform-trim">Bar type<div class="form-field-help-text" style="display: none;"></div></label>
+				<div class="form-field-container">
+					<div id="_frm-iconform-foreground-spaceform-trim" class="form-field-buttonset">
+						<input type="radio" name="type" id="type_holo" value="holo" checked="checked"><label for="type_holo">Holo Blue</label><input type="radio" name="type" id="type_kitkat" value="kitkat"><label for="type_kitkat">KitKat Gray</label><input type="radio" name="type" id="type_crop" value="crop"><label for="type_crop">Crop</label>
+					</div>
+				</div>
+			</div>
 		</form>
       </div>
       <div id="outputs">
-        <h3>Preview</h3>
+        <h3>Preview (resized to 300px wide)</h3>
         <div class="preview"></div>
         <div id="zip-button-stub"></div>
       </div>
