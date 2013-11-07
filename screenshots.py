@@ -66,7 +66,6 @@ class ViewPhotoHandler(blobstore_handlers.BlobstoreDownloadHandler):
       s = original.size
       ratio = float(300)/s[0]
       resized = original.resize((int(s[0]*ratio), int(s[1]*ratio)))
-      #resized = original
       cropped = process(resized, type)
       output = StringIO()
       cropped.save(output, format="png")
@@ -77,68 +76,70 @@ class ViewPhotoHandler(blobstore_handlers.BlobstoreDownloadHandler):
 
 def process(original, type):
   w,h = original.size
-  tb_template = None
+  status_template = None
   pixelMap = original.load()
-  #find top bar
-  topbar_top_left = pixelMap[0,0]
-  topbar_top_right = 0
-  topbar_bottom_left = 0
+
+  #find status bar
+  status_top_left = pixelMap[0,0]
+  status_max_x = 0
+  status_max_y = 0
   for i in range(original.size[0]):    
-    if topbar_top_left == pixelMap[i,0]:
-      topbar_top_right = i
+    if status_top_left == pixelMap[i,0]:
+      status_max_x = i
     else:
       break
   for i in range(original.size[1]):
-    if topbar_top_left == pixelMap[0,i]:
-      topbar_bottom_left = i
+    if status_top_left == pixelMap[0,i]:
+      status_max_y = i
     else:
       break
     
-  #find bottom bar
-  bottombar_bottom_right = pixelMap[w-1,h-1]
-  bottombar_top_right = 0
-  bottombar_bottom_left = 0
+  #find navigation bar
+  navigation_bottom_right = pixelMap[w-1,h-1]
+  navigation_min_y = 0
+  navigation_bottom_left = 0
   for i in reversed(range(original.size[0])):    
-    if bottombar_bottom_right == pixelMap[i,h-1]:
-      bottombar_bottom_left = i
+    if navigation_bottom_right == pixelMap[i,h-1]:
+      navigation_bottom_left = i
     else:
       break
   for i in reversed(range(original.size[1])):
-    if bottombar_bottom_right == pixelMap[w-1,i]:
-      bottombar_top_right = i
+    if navigation_bottom_right == pixelMap[w-1,i]:
+      navigation_min_y = i
     else:
       break
-  if topbar_top_right > topbar_bottom_left :
+
+  if status_max_x > status_max_y :
     #portrait
     if type == 'holo':
-      tb_template = prepare_template('templates/topcorner.png', w, topbar_bottom_left)
+      status_template = prepare_template('templates/topcorner.png', w, status_max_y)
     elif type == 'kitkat':
-      tb_template = prepare_template('templates/topcorner_grey.png', w, topbar_bottom_left)
+      status_template = prepare_template('templates/topcorner_grey.png', w, status_max_y)
 	
-    if tb_template:
-      tb_template_data = tb_template.load()
+    if status_template:
+      status_template_data = status_template.load()
       for i in range(0,w):
-        for j in range(0, topbar_bottom_left):
-          pixelMap[i,j] = tb_template_data[i,j]      
+        for j in range(0, status_max_y):
+          pixelMap[i,j] = status_template_data[i,j]      
           cropped = original  
     else:
-      cropped = original.crop((0,topbar_bottom_left,w,bottombar_top_right))
+      cropped = original.crop((0,status_max_y,w,navigation_min_y))
   else:
     #landscape
     logging.info(type)
     if type == 'holo':
-      tb_template = prepare_template_land('templates/topcorner_land.png', topbar_top_right, h)
+      status_template = prepare_template_land('templates/topcorner_land.png', status_max_x, h)
     elif type == 'kitkat':
-      tb_template = prepare_template_land('templates/topcorner_land_grey.png', topbar_top_right, h)
+      status_template = prepare_template_land('templates/topcorner_land_grey.png', status_max_x, h)
 
-    if tb_template:
-      tb_template_data = tb_template.load()
-      for i in range(0,topbar_top_right):
+    if status_template:
+      status_template_data = status_template.load()
+      for i in range(0,status_max_x):
         for j in range(0, h):
-          pixelMap[i,j] = tb_template_data[i,j]      
+          pixelMap[i,j] = status_template_data[i,j]      
           cropped = original        
     else:
-      cropped = original.crop((topbar_top_right,0,bottombar_bottom_left,h))  
+      cropped = original.crop((status_max_x,0,navigation_bottom_left,h))  
  
   return cropped
 
